@@ -104,12 +104,25 @@
     // 添加一些分布不均的点到地图上,地图上添加三个点标记，作为参照
     var allMap = {};
     var clickItem;
-    var mortgagedRateLimit = 0.2;
+    var mortgagedRateLimit = 0.1;
     //webapi.amap.com/theme/v1.3/markers/b/mark_bs.png
     markers.forEach(function (marker) {
+
+        var icon;
+        // 创建一个 icon
+        if (marker.saleOutRateFloat >= 1) {
+            icon = new AMap.Icon({
+                size: new AMap.Size(25, 34),
+                image: 'https://a.amap.com/jsapi_demos/static/demo-center/icons/dir-marker.png',
+                imageSize: new AMap.Size(135, 40),
+                imageOffset: new AMap.Pixel(-95, -3)
+            });
+        } else {
+            icon = marker.mortgagedRateFloat >= mortgagedRateLimit ? 'https://a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-red.png' : 'https://webapi.amap.com/theme/v1.3/markers/b/mark_bs.png'
+        }
         var markerItem = new AMap.Marker({
             map: map,
-            icon: marker.mortgagedRateFloat >= mortgagedRateLimit ? 'https://a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-red.png' : 'https://webapi.amap.com/theme/v1.3/markers/b/mark_bs.png',
+            icon: icon,
             position: [marker.position[0], marker.position[1]],
             offset: new AMap.Pixel(-13, -30),
             anchor: 'bottom-center',
@@ -151,7 +164,7 @@
             direction: 'right',
             zIndex: 1,
             offset: new AMap.Pixel(0, 0),  //设置文本标注偏移量
-            content: "<div class='info'>" + marker.project + "</div>", //设置文本标注内容
+            content: "<div class='info'>" + marker.project + (marker.saleOutRateFloat >= 1 ? '【售罄】' : '') + "</div>", //设置文本标注内容
         });
     }
 
