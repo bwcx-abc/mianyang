@@ -105,6 +105,7 @@
     var allMap = {};
     var clickItem;
     var mortgagedRateLimit = 0.1;
+    var clickCount = 0
     //webapi.amap.com/theme/v1.3/markers/b/mark_bs.png
     markers.forEach(function (marker) {
 
@@ -132,8 +133,7 @@
             clickItem && labelDefault(clickItem.marker, clickItem.data);
             clickItem = allMap[e.target._position[0] + '-' + e.target._position[1]];
             clickItem.marker.setLabel({
-                zIndex: 100,
-                content: "<div class='info'><ul>" +
+                content: "<div class='info info-top'><ul>" +
                     "<li>项目名称：" + marker.project + "</li>" +
                     "<li>预售证数量：" + marker.count + "</li>" +
                     "<li>售出率：" + marker.saleOutRate + "</li>" +
@@ -145,6 +145,7 @@
                     "<li>已抵押：" + marker.mortgaged + "</li>" +
                     "</ul></ul></div>",
             });
+            clickItem.marker.setzIndex(20 + clickCount++);
         });
         allMap[marker.position[0] + '-' + marker.position[1]] = {
             marker: markerItem,
@@ -155,6 +156,7 @@
     map.on('click', function () {
         if (clickItem) {
             labelDefault(clickItem.marker, clickItem.data);
+            clickItem.marker.setzIndex(12);
         }
     });
 
