@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>绵阳楼盘分布</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+    <link rel="stylesheet" href="https://cache.amap.com/lbs/static/main1119.css"/>
+    <script src="//cache.amap.com/lbs/static/es5.min.js"></script>
+
+
+    <script src="//webapi.amap.com/maps?v=2.0&key=6daafbde66f3cb43c891f07f8bca542f&&plugin=AMap.Scale,AMap.HawkEye,AMap.ToolBar,AMap.ControlBar,AMap.PlaceSearch,AMap.AutoComplete"></script>
+    <script src="./markers.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        #container {
+            height: 100%;
+        }
+
+        .input-card {
+            width: 150px;
+            top: 10px;
+            left: 10px;
+            bottom: auto;
+            display: none;
+        }
+
+        .amap-icon img {
+            width: 25px;
+            height: 34px;
+        }
+
+        .amap-marker-label {
+            border: 0;
+            background-color: transparent;
+        }
+
+        .info {
+            position: relative;
+            margin: 0;
+            top: 0;
+            right: 0;
+            min-width: 0;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<div class='input-card'>
+    <div class="input-item">
+        <input type="checkbox" checked onclick="toggleScale(this)"/>比例尺
+    </div>
+
+    <div class="input-item">
+        <input type="checkbox" id="toolbar" checked onclick="toggleToolBar(this)"/>工具条
+    </div>
+
+    <div class="input-item">
+        <input type="checkbox" id="controlBar" checked onclick="toggleControlBar(this)"/>工具条方向盘
+    </div>
+
+    <div class="input-item">
+        <input type="checkbox" id="overview" checked onclick="toggleOverViewShow(this)"/>显示鹰眼
+    </div>
+</div>
+
+<script>
+    //
+    var scale = new AMap.Scale({
+            visible: true
+        }),
+        toolBar = new AMap.ToolBar({
+            visible: true,
+            position: {
+                top: '210px',
+                right: '40px'
+            }
+        }),
+        controlBar = new AMap.ControlBar({
+            visible: true,
+            position: {
+                top: '110px',
+                right: '10px'
+            }
+        }),
+        overView = new AMap.HawkEye({
+            visible: true
+        }),
+        map = new AMap.Map("container", {
+            center: [104.749897, 31.466388],
+            zoom: 18,
+        });
+    map.addControl(scale);
+    map.addControl(toolBar);
+    map.addControl(controlBar);
+    map.addControl(overView);
+
+    // 添加一些分布不均的点到地图上,地图上添加三个点标记，作为参照
+    var allMap = {};
+    var clickItem;
+    var mortgagedRateLimit = 0.2;
+    //webapi.amap.com/theme/v1.3/markers/b/mark_bs.png
+    markers.forEach(function (marker) {
+        var markerItem = new AMap.Marker({
+            map: map,
+            icon: marker.mortgagedRateFloat >= mortgagedRateLimit ? 'https://a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-red.png' : 'https://webapi.amap.com/theme/v1.3/markers/b/mark_bs.png',
+            position: [marker.position[0], marker.position[1]],
+            offset: new AMap.Pixel(-13, -30),
+            anchor: 'bottom-center',
+        });
+        labelDefault(markerItem, marker);
+        markerItem.on('click', function (e) {
+            clickItem && labelDefault(clickItem.marker, clickItem.data);
+            clickItem = allMap[e.target._position[0] + '-' + e.target._position[1]];
+            clickItem.marker.setLabel({
+                zIndex: 100,
+                content: "<div class='info'><ul>" +
+                    "<li>项目名称：" + marker.project + "</li>" +
+                    "<li>预售证数量：" + marker.count + "</li>" +
+                    "<li>售出率：" + marker.saleOutRate + "</li>" +
+                    "<li>抵押率：" + marker.mortgagedRate + "</li>" +
+                    "<li>房屋总数：" + marker.houseNum + "</li>" +
+                    "<li>可售：" + marker.sale + "</li>" +
+                    "<li>已备案：" + marker.filing + "</li>" +
+                    "<li>已签订：" + marker.signed + "</li>" +
+                    "<li>已抵押：" + marker.mortgaged + "</li>" +
+                    "</ul></ul></div>",
+            });
+        });
+        allMap[marker.position[0] + '-' + marker.position[1]] = {
+            marker: markerItem,
+            data: marker
+        }
+        // console.log(marker.project + "  " + marker.count)
+    });
+    map.on('click', function () {
+        if (clickItem) {
+            labelDefault(clickItem.marker, clickItem.data);
+        }
+    });
+
+    function labelDefault(markerItem, marker) {
+        markerItem.setTitle(marker.project);
+        markerItem.setLabel({
+            direction: 'right',
+            zIndex: 1,
+            offset: new AMap.Pixel(0, 0),  //设置文本标注偏移量
+            content: "<div class='info'>" + marker.project + "</div>", //设置文本标注内容
+        });
+    }
+
+    map.setFitView();
+
+    function toggleScale(checkbox) {
+        if (checkbox.checked) {
+            scale.show();
+        } else {
+            scale.hide();
+        }
+    }
+
+    function toggleToolBar(checkbox) {
+        if (checkbox.checked) {
+            showToolBar();
+        } else {
+            hideToolBar();
+        }
+    }
+
+    function toggleControlBar(checkbox) {
+        if (checkbox.checked) {
+            document.getElementById('controlBar').checked = true;
+            controlBar.show();
+        } else {
+            document.getElementById('controlBar').checked = false;
+            controlBar.hide();
+        }
+    }
+
+    function toggleOverViewShow(checkbox) {
+        if (checkbox.checked) {
+            overView.show();
+        } else {
+            overView.hide();
+        }
+    }
+
+    function showToolBar() {
+        document.getElementById('toolbar').checked = true;
+        toolBar.show();
+    }
+
+    function hideToolBar() {
+        document.getElementById('toolbar').checked = false;
+        toolBar.hide();
+    }
+</script>
+
+</body>
+</html>
